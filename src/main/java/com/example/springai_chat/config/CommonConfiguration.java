@@ -1,6 +1,7 @@
 package com.example.springai_chat.config;
 
 import com.example.springai_chat.constants.SystemConstants;
+import com.example.springai_chat.tools.CourseTools;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -14,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.sql.DataSource;
+
 
 
 @Configuration
@@ -39,7 +40,7 @@ public class CommonConfiguration {
     // 为gameChatClient创建独立的内存存储
     //每一轮游戏独立，不需要将会话存入数据库中，为gameChatClient创建的存储，存入内存中
     @Bean
-    public ChatMemory gameChatMemory() {
+    public ChatMemory inMemoryChatMemory() {
         return MessageWindowChatMemory.builder()
                 .chatMemoryRepository(new InMemoryChatMemoryRepository()) // 使用内存存储，不持久化到数据库
                 .maxMessages(30)
@@ -59,10 +60,22 @@ public class CommonConfiguration {
     }
 
     @Bean
-    public ChatClient gameChatClient(OpenAiChatModel model, ChatMemory gameChatMemory) {
+    public ChatClient gameChatClient(OpenAiChatModel model, ChatMemory inMemoryChatMemory) {
         return ChatClient.builder(model)
                 .defaultSystem(SystemConstants.GAME_SYSTEM_PROMPT)
-                .defaultAdvisors(new SimpleLoggerAdvisor(),MessageChatMemoryAdvisor.builder(gameChatMemory).build())
+                .defaultAdvisors(new SimpleLoggerAdvisor(),MessageChatMemoryAdvisor.builder(inMemoryChatMemory).build())
+                .build();
+    }
+
+
+
+    @Bean
+    public ChatClient serviceChatClient(OpenAiChatModel model, ChatMemory inMemoryChatMemory, CourseTools courseTools) {
+        return ChatClient.builder(model)
+                .defaultSystem(SystemConstants.SERVICE_SYSTEM_PROMPT)
+                .defaultAdvisors(new SimpleLoggerAdvisor(),
+                        MessageChatMemoryAdvisor.builder(inMemoryChatMemory).build())
+                .defaultTools(courseTools)
                 .build();
     }
 

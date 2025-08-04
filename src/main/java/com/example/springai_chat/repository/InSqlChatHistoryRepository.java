@@ -1,7 +1,7 @@
 package com.example.springai_chat.repository;
 
-import com.example.springai_chat.Mapper.ChatHistoryMapper;
-import com.example.springai_chat.entity.ChatHistory;
+import com.example.springai_chat.mapper.ChatHistoryMapper;
+import com.example.springai_chat.entity.po.ChatHistory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -20,19 +20,19 @@ public class InSqlChatHistoryRepository implements ChatHistoryRepository{
      */
     @Override
     public void save(String type, String chatId) {
-        // 先查询是否已存在
-        if (exists(type, chatId)) return;
+        // 检查是否已存在，避免重复插入
+        if (!exists(type, chatId)) {
 
-        ChatHistory chatHistory = new ChatHistory();
-        chatHistory.setType(type);
-        chatHistory.setChatId(chatId);
-        chatHistoryMapper.insert(chatHistory);
+            ChatHistory chatHistory = new ChatHistory();
+            chatHistory.setType(type);
+            chatHistory.setChatId(chatId);
+
+            chatHistoryMapper.insert(chatHistory);
+        }
     }
 
-    // 判断 chatId 是否已存在
     private boolean exists(String type, String chatId) {
-        List<String> chatIds = chatHistoryMapper.selectChatIdsByType(type);
-        return chatIds.contains(chatId);
+        return chatHistoryMapper.countByTypeAndChatId(type, chatId) > 0;
     }
 
     /**
@@ -52,6 +52,6 @@ public class InSqlChatHistoryRepository implements ChatHistoryRepository{
      */
     @Override
     public void delete(String type, String chatId) {
-        chatHistoryMapper.delete(type,chatId);
+        chatHistoryMapper.deleteByTypeAndChatId(type, chatId);
     }
 }

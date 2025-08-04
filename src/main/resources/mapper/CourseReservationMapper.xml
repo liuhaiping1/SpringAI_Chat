@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springai_chat.mapper.CourseReservationMapper">
+    <!-- 新增预约单 -->
+    <insert id="insert" parameterType="com.example.springai_chat.entity.po.CourseReservation">
+        INSERT INTO course_reservation
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            course,
+            student_name,
+            contact_info,
+            school
+            <if test="remark != null and remark != ''">
+                , remark
+            </if>
+        </trim>
+        VALUES
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            #{course},
+            #{studentName},
+            #{contactInfo},
+            #{school}
+            <if test="remark != null and remark != ''">
+                , #{remark}
+            </if>
+        </trim>
+    </insert>
+</mapper>

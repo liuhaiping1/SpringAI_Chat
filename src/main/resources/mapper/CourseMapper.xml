@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springai_chat.mapper.CourseMapper">
+
+    <!-- 查询所有课程 -->
+    <select id="selectAll" resultType="com.example.springai_chat.entity.po.Course">
+        SELECT * FROM course
+    </select>
+
+    <!-- 根据学生偏好动态查询课程  -->
+    <select id="selectCourses" parameterType="com.example.springai_chat.entity.query.CourseQuery" resultType="com.example.springai_chat.entity.po.Course">
+        SELECT * FROM course
+        <where>
+            <!-- 学生兴趣类型精确匹配 -->
+            <if test="type != null and type != ''">
+                type = #{type}
+            </if>
+            <!-- 学生学历要求：课程学历要求 <= 学生学历 -->
+            <if test="edu != null">
+                AND edu &lt;= #{edu}
+            </if>
+        </where>
+        <!-- 只有当明确获取到价格敏感或时长敏感时才排序 -->
+        <if test="sorts != null and sorts.size() > 0">
+            ORDER BY
+            <foreach collection="sorts" item="sort" separator=",">
+                ${sort.field} ${sort.asc ? 'ASC' : 'DESC'}
+            </foreach>
+        </if>
+    </select>
+
+    <!-- 按类型查询 -->
+    <select id="selectByType" parameterType="string" resultType="com.example.springai_chat.entity.po.Course">
+        SELECT * FROM course WHERE type = #{type}
+    </select>
+
+
+    <!-- 按教育等级查询 -->
+    <select id="selectByEdu" parameterType="int" resultType="com.example.springai_chat.entity.po.Course">
+        SELECT * FROM course WHERE edu &lt;= #{edu}
+    </select>
+
+
+
+</mapper>
