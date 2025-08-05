@@ -16,7 +16,7 @@ import org.springframework.core.io.Resource;
 
 import java.util.List;
 
-@SpringBootTest
+
 public class VectorStoreTest {
 
         @Autowired
