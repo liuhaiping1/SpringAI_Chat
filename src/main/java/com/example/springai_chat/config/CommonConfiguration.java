@@ -9,8 +9,11 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
-import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiEmbeddingModel;
+import org.springframework.ai.vectorstore.SimpleVectorStore;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,7 +52,7 @@ public class CommonConfiguration {
 
 
     @Bean
-    public ChatClient chatClient(OllamaChatModel model,ChatMemory chatMemory) {
+    public ChatClient chatClient(OpenAiChatModel model,ChatMemory chatMemory) {
         return ChatClient.builder(model)
                 .defaultSystem("你是一个热心可爱的智能助手，你的名字是小团，请以小团的身份和语气回答问题")
                 //MessageChatMemoryAdvisor 的构造方法是私有的，不能直接通过 new 创建实例。
@@ -78,5 +81,7 @@ public class CommonConfiguration {
                 .defaultTools(courseTools)
                 .build();
     }
+
+
 
 }
