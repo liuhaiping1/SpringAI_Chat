@@ -1,10 +1,9 @@
 package com.example.springai_chat.service;
 
-import com.example.springai_chat.entity.ChatDocument;
+import com.example.springai_chat.entity.po.ChatDocument;
 import com.example.springai_chat.mapper.ChatDocumentMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 @Service
 public class ChatDocumentService {
@@ -15,8 +14,8 @@ public class ChatDocumentService {
     /**
      * 保存文档信息
      */
-    public void saveDocument(String chatId, String fileUrl) {
-        ChatDocument document = new ChatDocument(chatId, fileUrl);
+    public void saveDocument(String chatId, String fileUrl, String fileName) {
+        ChatDocument document = new ChatDocument(chatId, fileUrl, fileName);
         chatDocumentMapper.insert(document);
     }
     
@@ -25,6 +24,19 @@ public class ChatDocumentService {
      */
     public ChatDocument getDocumentsByChatId(String chatId) {
         return chatDocumentMapper.findByChatId(chatId);
+    }
+
+    /**
+     * 根据chatId获取文件URL
+     * @param chatId
+     * @return
+     */
+    public String getFileURLByChatId(String chatId){
+        ChatDocument document = chatDocumentMapper.findByChatId(chatId);
+        if (document == null) {
+            return null;
+        }
+        return document.getFileUrl();
     }
     
     /**

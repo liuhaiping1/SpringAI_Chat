@@ -19,6 +19,6 @@ public interface ChatHistoryMapper {
     @Select("SELECT COUNT(*) FROM chat_history WHERE type = #{type} AND chat_id = #{chatId}")
     int countByTypeAndChatId(String type, String chatId);
     
-    @Delete("DELETE FROM chat_history WHERE type = #{type} AND chat_id = #{chatId}")
+    @Delete("DELETE FROM chat_history WHERE chat_id = #{chatId}")
     int deleteByTypeAndChatId(String type, String chatId);
 }

@@ -17,5 +17,5 @@ public interface FileRepository {
      * @param chatId 会话id
      * @return 找到的文件
      */
-    String getFile(String chatId);
+    String getFileURL(String chatId);
 }

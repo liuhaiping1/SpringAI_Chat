@@ -105,6 +105,12 @@
             <version>3.17.4</version>
         </dependency>
 
+        <!-- 添加Jedis依赖用于RedisVectorStore配置 -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+        </dependency>
+
     </dependencies>
 
 

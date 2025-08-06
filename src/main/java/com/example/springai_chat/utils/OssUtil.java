@@ -92,6 +92,57 @@ public class OssUtil {
             }
         }
     }
+
+
+    /**
+     * 根据OSS URL删除文件
+     * @param ossUrl OSS文件的完整URL
+     * @return 是否删除成功
+     */
+    public boolean deleteFileByUrl(String ossUrl) {
+        if (ossUrl == null || ossUrl.trim().isEmpty()) {
+            log.error("OSS URL为空");
+            return false;
+        }
+
+        String objectKey = extractObjectKeyFromUrl(ossUrl);
+        if (objectKey == null) {
+            log.error("无法从URL中提取objectKey: {}", ossUrl);
+            return false;
+        }
+
+        return deleteFile(objectKey);
+    }
+
+    /**
+     * 从OSS URL中提取objectKey
+     * @param ossUrl OSS文件的完整URL
+     * @return 提取出的objectKey，如果提取失败返回null
+     */
+    private String extractObjectKeyFromUrl(String ossUrl) {
+        try {
+            // 去掉协议部分 https:// 或 http://
+            String urlWithoutProtocol = ossUrl.replaceFirst("^https?://", "");
+
+            // 找到第一个斜杠的位置
+            int firstSlashIndex = urlWithoutProtocol.indexOf("/");
+
+            if (firstSlashIndex != -1 && firstSlashIndex < urlWithoutProtocol.length() - 1) {
+                // 提取域名后的路径部分
+                return urlWithoutProtocol.substring(firstSlashIndex + 1);
+            }
+
+            return null;
+        } catch (Exception e) {
+            log.error("解析OSS URL失败: {}", ossUrl, e);
+            return null;
+        }
+    }
+
+
+
+
+
     
     /**
      * 检查文件是否存在

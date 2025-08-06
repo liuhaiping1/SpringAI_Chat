@@ -10,6 +10,7 @@ import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -19,6 +20,8 @@ import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import redis.clients.jedis.JedisPooled;
 
 
 
@@ -52,11 +55,42 @@ public class CommonConfiguration {
                 .build();
     }
 
+    /**
+     * 配置JedisPooled连接
+     * @return JedisPooled实例
+     */
+    @Bean
+    @Primary
+    public JedisPooled jedisPooled() {
+        return new JedisPooled("localhost", 6379);
+    }
+
+    /**
+     * 配置RedisVectorStore，显式定义元数据字段
+     * @param jedisPooled Redis连接池
+     * @param embeddingModel 嵌入模型
+     * @return 配置好的RedisVectorStore
+     */
+    @Bean
+    @Primary
+    public RedisVectorStore redisVectorStore(JedisPooled jedisPooled, OpenAiEmbeddingModel embeddingModel) {
+        return RedisVectorStore.builder(jedisPooled, embeddingModel)
+                .indexName("spring-ai-index")
+                .prefix("embedding:")
+                .metadataFields(
+                        RedisVectorStore.MetadataField.tag("chatId"),
+                        RedisVectorStore.MetadataField.tag("file_name")
+                )
+                .initializeSchema(true)
+                .build();
+    }
+
 
     @Bean
     public ChatClient chatClient(OpenAiChatModel model,ChatMemory chatMemory) {
         return ChatClient.builder(model)
-                .defaultSystem("你是一个热心可爱的智能助手，你的名字是小团，请以小团的身份和语气回答问题")
+                .defaultOptions(ChatOptions.builder().model("qwen-omni-turbo").build())
+                .defaultSystem(SystemConstants.CHAT_SYSTEM_PROMPT)
                 //MessageChatMemoryAdvisor 的构造方法是私有的，不能直接通过 new 创建实例。
                // .defaultAdvisors(new SimpleLoggerAdvisor() ,new MessageChatMemoryAdvisor(chatMemory))
                 .defaultAdvisors(new SimpleLoggerAdvisor(),MessageChatMemoryAdvisor.builder(chatMemory).build())// 正确添加，添加日志记录，方便调试,可以添加多个
@@ -64,6 +98,17 @@ public class CommonConfiguration {
                 .build();
     }
 
+    @Bean
+    public ChatClient mutilChatClient(OpenAiChatModel model,ChatMemory inMemoryChatMemory) {
+        return ChatClient.builder(model)
+                .defaultOptions(ChatOptions.builder().model("qwen-omni-turbo").build())
+                .defaultSystem(SystemConstants.CHAT_SYSTEM_PROMPT)
+                //MessageChatMemoryAdvisor 的构造方法是私有的，不能直接通过 new 创建实例。
+                // .defaultAdvisors(new SimpleLoggerAdvisor() ,new MessageChatMemoryAdvisor(chatMemory))
+                .defaultAdvisors(new SimpleLoggerAdvisor(),MessageChatMemoryAdvisor.builder(inMemoryChatMemory).build())// 正确添加，添加日志记录，方便调试,可以添加多个
+                //.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build()) //添加会话记忆
+                .build();
+    }
     @Bean
     public ChatClient gameChatClient(OpenAiChatModel model, ChatMemory inMemoryChatMemory) {
         return ChatClient.builder(model)
@@ -85,18 +130,13 @@ public class CommonConfiguration {
     }
 
     @Bean
-    public ChatClient pdfChatClient(OpenAiChatModel model, ChatMemory inMemoryChatMemory, VectorStore vectorStore) {
+    public ChatClient pdfChatClient(OpenAiChatModel model, ChatMemory chatMemory) {
         return ChatClient.builder(model)
                 .defaultSystem("严格根据上下文回复，不要自己凭空猜测")
                 .defaultAdvisors(
                         new SimpleLoggerAdvisor(),
-                        MessageChatMemoryAdvisor.builder(inMemoryChatMemory).build(),
-                        QuestionAnswerAdvisor.builder(vectorStore)
-                                .searchRequest(SearchRequest.builder()
-                                        .similarityThreshold(0.7)
-                                        .topK(3)
-                                        .build())
-                                .build()
+                        MessageChatMemoryAdvisor.builder(chatMemory).build()
+                        // 移除QuestionAnswerAdvisor，在Controller中动态添加
                 )
                 .build();
     }

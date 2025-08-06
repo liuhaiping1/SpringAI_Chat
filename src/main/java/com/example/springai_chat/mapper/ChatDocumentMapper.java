@@ -1,13 +1,12 @@
 package com.example.springai_chat.mapper;
 
-import com.example.springai_chat.entity.ChatDocument;
+import com.example.springai_chat.entity.po.ChatDocument;
 import org.apache.ibatis.annotations.*;
-import java.util.List;
 
 @Mapper
 public interface ChatDocumentMapper {
     
-    @Insert("INSERT INTO chat_document (chat_id, file_url) VALUES (#{chatId}, #{fileUrl})")
+    @Insert("INSERT INTO chat_document (chat_id, file_url, file_name) VALUES (#{chatId}, #{fileUrl}, #{fileName})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(ChatDocument chatDocument);
     
